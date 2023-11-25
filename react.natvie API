@@ -1,0 +1,72 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  NativeModules,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
+
+const SMSRetriever = NativeModules.SmsRetriever;
+
+const App = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [hashString, setHashString] = useState('');
+  const [otp, setOtp] = useState('');
+
+  const requestPhoneNumber = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+          {
+            title: 'Phone State Permission',
+            message: 'This app needs access to your phone state in order to retrieve SMS messages.',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          const result = await SMSRetriever.requestPhoneNumber();
+          setPhoneNumber(result.number);
+          setHashString(result.hash);
+        } else {
+          console.log('Phone state permission denied.');
+        }
+      } else {
+        console.log('Platform not supported.');
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const handleSmsRetrieved = (event) => {
+    console.log(event);
+    setOtp(event.message);
+  };
+
+  const startSmsRetriever = async () => {
+    try {
+      const registered = await SMSRetriever.startSmsRetriever(hashString);
+      console.log(`SMS retrieval ${registered ? 'started' : 'failed'}.`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  return (
+    <View>
+      <Text>Enter your phone number:</Text>
+      <TextInput
+        value={phoneNumber}
+        onChangeText={(text) => setPhoneNumber(text)}
+      />
+      <Button title="Request Phone Number" onPress={requestPhoneNumber} />
+      <Button title="Start OTP Retrieval" onPress={startSmsRetriever} />
+      <Text>Your OTP: {otp}</Text>
+    </View>
+  );
+};
+
+export default App;
