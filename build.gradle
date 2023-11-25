@@ -1,0 +1,65 @@
+dependencies {
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
+}
+
+// Declare the BroadcastReceiver in your app's AndroidManifest.xml file as below
+<receiver
+    android:name=".MySMSBroadcastReceiver"
+    android:permission="com.google.android.gms.auth.api.phone.permission.SEND"
+    tools:replace="android:permission">
+    <intent-filter>
+        <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED"/>
+    </intent-filter>
+</receiver>
+
+//In your activity class, start the SMS retrieval process as below
+private fun requestSMSRetrieval() {
+    val client = SmsRetriever.getClient(this /* context */)
+    val task = client.startSmsRetriever()
+    // Wait for the SMS message to arrive, although you may want to time out after 5 minutes
+    task.addOnSuccessListener {
+          // API successfully started
+    }
+    task.addOnFailureListener {
+          // Failed to start the API
+    }
+}
+
+//Create a broadcast receiver class as shown below
+class MySMSBroadcastReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (intent?.action == SmsRetriever.SMS_RETRIEVED_ACTION) {
+            val extras = intent.extras
+            if (extras != null) {
+                val smsRetrieverStatus = extras.get(SmsRetriever.EXTRA_STATUS) as Status
+                when (smsRetrieverStatus.statusCode) {
+                    CommonStatusCodes.SUCCESS -> {
+                        val message = extras.get(SmsRetriever.EXTRA_SMS_MESSAGE) as String
+                        // Extract the OTP from the message using regex
+                        val otp = extractOTP(message)
+                        // Call the verification function with the extracted OTP
+                        verifyUser(otp)
+                    }
+                    CommonStatusCodes.TIMEOUT -> {
+                        // Timeout, recovery failed
+                    }
+                }
+            }
+        }
+    }
+
+    private fun extractOTP(message: String): String {
+        // Use regex to extract the OTP from the message
+        val pattern = Pattern.compile("(\\d{6})")
+        val matcher = pattern.matcher(message)
+        if (matcher.find()) {
+            return matcher.group(1)
+        }
+        return ""
+    }
+
+    private fun verifyUser(otp: String) {
+        // Use the OTP to verify the user's identity as required
+    }
+}
