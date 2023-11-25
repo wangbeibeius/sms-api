@@ -1,0 +1,15 @@
+This is an example code written in Kotlin that demonstrates how to use the SMS Retriever API provided by Google Play Services to automatically retrieve an OTP (One-Time Password) sent via SMS, without requiring any SMS read permissions. Here's what the code does:
+
+1. In the app's build.gradle file, the `com.google.android.gms:play-services-auth:19.0.0` dependency is added. This dependency includes the SMS Retriever API among other features.
+
+2. In the AndroidManifest.xml file, a BroadcastReceiver named `MySMSBroadcastReceiver` is declared. This receiver will be triggered when an SMS with a specific format is received. The `android:name` attribute specifies the name of the class that will handle the onReceive() method of the receiver. The `android:permission` attribute specifies the permission required to send an SMS to the device.
+
+3. In the activity where the SMS retrieval is required, a function named `requestSMSRetrieval()` is defined. This function obtains an instance of the SmsRetrieverClient and starts retrieving the SMS. The API returns a Task object, which is an asynchronous operation. The onSuccessListener and onFailureListener are added to the task to handle the response.
+
+4. The `MySMSBroadcastReceiver` class handles the SMS retrieval responses and extracts the OTP from the SMS message using regex. The `onReceive()` method is called when an SMS message is received by the app's BroadcastReceiver. 
+
+5. The `extractOTP()` function uses a regular expression pattern `"(\\d{6})"` to find and extract a six digit number from the received message. If the pattern is matched, it returns the OTP as a string.
+
+6. The `verifyUser()` function is called with the extracted OTP as its parameter and performs any necessary identity verification action to authenticate the user for the application. 
+
+Overall, this code demonstrates how the Android SMS Retriever API can be used to retrieve OTPs sent via SMS and streamline the authentication process for users without requiring any additional SMS read permissions.
